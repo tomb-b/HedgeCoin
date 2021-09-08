@@ -3,7 +3,6 @@ from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 import time
-import market
 
 
 gamma = 0.99
@@ -12,7 +11,8 @@ eps = 0.2
 c1 = 0.5
 c2 = 0.002
 epochs = 60
-batch_size = 8
+batch_size = 24
+exploration_fac = 0.2
 
 class PPOModel(nn.Module):
     def __init__(self, state_size, num_actions):
@@ -36,7 +36,7 @@ class PPOModel(nn.Module):
     def forward(self, state):
         val = self.critic_net(state)
         mean = self.actor_net(state)
-        dist = torch.distributions.Normal(mean, 0.4)
+        dist = torch.distributions.Normal(mean, exploration_fac)
         
         return dist, val
         

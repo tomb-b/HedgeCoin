@@ -3,19 +3,20 @@ from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 import time
-from market import *
+import gym
+from marketv2 import *
 from ppoModel import *
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
-env = market.market(device)
+env = marketv2(device)
 state_size = env.observation_space
 num_actions = env.action_space
 model = PPOModel(state_size, num_actions).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0004)
 print(model)
-model.load_state_dict(torch.load("ppoCryptoInvestAllTest"))
+model.load_state_dict(torch.load("ppoCryptoInvestV5"))
 
 max_episodes, save_time = 400, 100
 R, R_avg = [], []
@@ -35,8 +36,8 @@ for episode in range(max_episodes):
         break
     elif (time.time() - prev_time) > save_time:
         print('Checkpointing model...')
-        torch.save(model.state_dict(), "ppoCryptoInvestAllTest")
+        torch.save(model.state_dict(), "ppoCryptoInvestV5")
         prev_time = time.time()
 
 print('Saving model...')
-torch.save(model.state_dict(), "ppoCryptoInvestAllTest")
+torch.save(model.state_dict(), "ppoCryptoInvestV5")

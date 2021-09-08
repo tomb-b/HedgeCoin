@@ -4,20 +4,51 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 from enum import Enum
+from google.cloud import bigquery
+from google.oauth2 import service_account
+import process_data
 #from lstmModel import *
 
 
 class market(object):
-    def __init__(self, device):
+    def __init__(self, device, step_size=4):
         self.currencies, self.currency_data, self.assets_daily, faulty_currency = {}, {}, {}, {}
         self.iter, self.asset_value, self.initial_asset_value, self.sel_currency = 0, 0.0, 0.0, ''
         self.dollars = random.randint(0, 10000)
+        self.coins = ('BTC', 'ETH', 'ADA', 'BNB', 'XRP', 'EOS', 'AAVE', 'DOT', 'SOL', 'UNI', 'LINK', 'LTC',
+                      'MATIC', 'NEO', 'TRX', 'XLM', 'XRP')
+        credentials = service_account.Credentials.from_service_account_file(
+            '/Users/tombjurenlind/PycharmProjects/HedgeCoin/venv/data/data-key.json')
+        client = bigquery.Client(credentials=credentials)
+        query = """select * from `bigquery-public-data.crypto_ethereum.transactions` limit 1000"""
         #model = LSTM(len(state), 1).to(device)
         #torch.load(model.state_dict(), "lstmPricePredict")
 
-        data = pd.read_csv('data/all_currencies.csv', sep=',',
+        '''data = pd.read_csv('data/all_currencies.csv', sep=',',
                            usecols=['Date','Symbol', 'Open', 'High', 'Low',
-                                    'Close', 'Volume', 'Market Cap'])
+                                    'Close', 'Volume', 'Market Cap'])'''
+        rand_coin = random.choice(self.coins)
+        data_min = pd.read_csv(f'data/Binance_{rand_coin}_minute.csv.csv', sep=',',
+                           usecols=['unix' ,'date', 'symbol', 'open', 'high', 'low', 'close', f'Volume_{rand_coin}',
+                                    'Volume_USDT', 'tradecount'], skiprows=1)
+        data_hour = pd.read_csv(f'data/Binance_{rand_coin}_1h.csv.csv', sep=',',
+                           usecols=['unix' ,'date', 'symbol', 'open', 'high', 'low', 'close', f'Volume_{rand_coin}',
+                                    'Volume_USDT', 'tradecount'], skiprows=1)
+        data_daily = pd.read_csv(f'data/Binance_{rand_coin}_d.csv.csv', sep=',',
+                           usecols=['unix' ,'date', 'symbol', 'open', 'high', 'low', 'close', f'Volume_{rand_coin}',
+                                    'Volume_USDT', 'tradecount'], skiprows=1)
+        query = f"""select tx.token_address, t.name, tx.from_address, tx.to_address, tx.value, t.total_supply,
+        tx.block_timestamp, trans.gas as gas_limit, trans.gas_price, trans.receipt_gas_used as gas_used
+        from 
+        `bigquery-public-data.crypto_ethereum.token_transfers` tx 
+        JOIN `bigquery-public-data.crypto_ethereum.tokens` t on tx.token_address = t.address
+        JOIN `bigquery-public-data.crypto_ethereum.transactions` trans on trans.`hash` = tx.transaction_hash 
+        where t.name IN {self.coins}
+        order by date(tx.block_timestamp) desc
+        LIMIT 50000"""
+        query_job = client.query(query)
+        gas_used, gas_limits, gas_prices = process_data.process_query(query_job, step_size)
+
         data = data.values
         data.sort(key=lambda data: data[0])
         start_date = min(data[:, 0])
