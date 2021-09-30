@@ -1,7 +1,6 @@
 # Import dependencies
 import torch
 import numpy as np
-import gym
 from collections import namedtuple
 from dqnModel import DoubleQLearningModel, ExperienceReplay, train_loop_ddqn
 from marketv2 import *
@@ -13,7 +12,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 env = marketv2(device)
 
 # Enable visualization? Does not work in all environments.
-enable_visualization = False
+enable_visualization = True
 
 # Initializations
 #num_actions = env.action_space.n
@@ -21,12 +20,14 @@ enable_visualization = False
 num_actions = env.action_space
 num_states = env.observation_space
 num_episodes = 1200
-batch_size = 128
+batch_size = 16
 gamma = .94
 learning_rate = 1e-4
 
 # Object holding our online / offline Q-Networks
 ddqn = DoubleQLearningModel(device, num_states, num_actions, learning_rate)
+ddqn.online_model.load_state_dict(torch.load("dqnCryptoInvestOnlineV7"))
+ddqn.offline_model.load_state_dict(torch.load("dqnCryptoInvestOfflineV7"))
 
 # Create replay buffer, where experience in form of tuples <s,a,r,s',t>, gathered from the environment is stored
 # for training

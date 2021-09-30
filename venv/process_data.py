@@ -47,11 +47,10 @@ def gen_data(data_min, step_size=4):
         Open = data_min[i][state.Close.value]
         Close = data_min[i + step][state.Close.value]
         Date = data_min[i][state.Date.value]
-        Low, High, tradecount, Volume_coin, Volume_usdt = 0, 0, 0, 0, 0
+        Low, High, tradecount, Volume_usdt = 0, 0, 0, 0
 
         for data in data_min[i: i + step]:
-            tradecount += data[state.Tradecount.value]
-            Volume_coin += data[state.Volume_coin.value]
+            #tradecount += data[state.Tradecount.value]
             Volume_usdt += data[state.Volume_usdt.value]
 
             if data[state.Low.value] < Low:
@@ -59,7 +58,7 @@ def gen_data(data_min, step_size=4):
             if data[state.HIgh.value] > High:
                 High = data[state.HIgh.value]
 
-        grouped_data.append([Date, Open, High, Low, Close, Volume_coin, Volume_usdt, tradecount])
+        grouped_data.append([Date, Open, High, Low, Close, Volume_usdt])
         i += step
 
     return grouped_data
@@ -70,6 +69,6 @@ class state(Enum):
     HIgh = 2
     Low = 3
     Close = 4
-    Volume_coin = 5
-    Volume_usdt = 6
-    Tradecount = 7
+    #Volume_coin = 5
+    Volume_usdt = 5
+    Tradecount = 6

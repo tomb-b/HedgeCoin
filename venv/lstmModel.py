@@ -6,6 +6,7 @@ from datetime import datetime
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
 
 
 class LSTM(nn.Module):
@@ -30,7 +31,12 @@ validation_data = Streamflow(gauge_id, "validation")
 
 training_loader = training_data.data_loader(batch_size=8)'''
 
+rand_coin = 'ETH'
+self.data_min = pd.read_csv(f'data/Binance_{rand_coin}USDT_minute.csv', sep=',',
+                            usecols=['date', 'open', 'high', 'low', 'close', f'Volume {rand_coin}',
+                                     'Volume USDT', 'tradecount'], skiprows=1)
 batch_size, dIn, h, dOut = 8, 6, 64, 1
+loader = DataLoader(self.training_date, batch_size=batch_size, shuffle=True)
 
 dev = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 model = LSTM(dIn, h, dOut, batch_size, dev)

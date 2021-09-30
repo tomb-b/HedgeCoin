@@ -11,7 +11,7 @@ eps = 0.2
 c1 = 0.5
 c2 = 0.002
 epochs = 60
-batch_size = 24
+batch_size = 8
 exploration_fac = 0.2
 
 class PPOModel(nn.Module):
